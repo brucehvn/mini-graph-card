@@ -233,7 +233,7 @@ class MiniGraphCard extends LitElement {
         <div class="states flex" loc=${this.config.align_state}>
           <div class="state">
             <span class="state__value ellipsis" style=${color}>
-              ${this.computeState(state)}
+              ${this.computeState(state, (this.config.show.state === 'raw'))}
             </span>
             <span class="state__uom ellipsis" style=${color}>
               ${this.computeUom(entity || 0)}
@@ -256,7 +256,7 @@ class MiniGraphCard extends LitElement {
           style=${entity.state_adaptive_color ? `color: ${this.computeColor(state, id)};` : ''}>
           ${entity.show_indicator ? this.renderIndicator(state, id) : ''}
           <span class="state__value ellipsis">
-            ${this.computeState(state)}
+            ${this.computeState(state, (this.config.show.state === 'raw'))}
           </span>
           <span class="state__uom ellipsis">
             ${this.computeUom(id)}
@@ -517,8 +517,8 @@ class MiniGraphCard extends LitElement {
     if (!this.config.show.labels || this.primaryYaxisSeries.length === 0) return;
     return html`
       <div class="graph__labels --primary flex">
-        <span class="label--max">${this.computeState(this.bound[1])}</span>
-        <span class="label--min">${this.computeState(this.bound[0])}</span>
+        <span class="label--max">${this.computeState(this.bound[1], false)}</span>
+        <span class="label--min">${this.computeState(this.bound[0], false)}</span>
       </div>
     `;
   }
@@ -527,8 +527,8 @@ class MiniGraphCard extends LitElement {
     if (!this.config.show.labels_secondary || this.secondaryYaxisSeries.length === 0) return;
     return html`
       <div class="graph__labels --secondary flex">
-        <span class="label--max">${this.computeState(this.boundSecondary[1])}</span>
-        <span class="label--min">${this.computeState(this.boundSecondary[0])}</span>
+        <span class="label--max">${this.computeState(this.boundSecondary[1], false)}</span>
+        <span class="label--min">${this.computeState(this.boundSecondary[0], false)}</span>
       </div>
     `;
   }
@@ -540,7 +540,7 @@ class MiniGraphCard extends LitElement {
           <div class="info__item">
             <span class="info__item__type">${entry.type}</span>
             <span class="info__item__value">
-              ${this.computeState(entry.state)} ${this.computeUom(0)}
+              ${this.computeState(entry.state, false)} ${this.computeUom(0)}
             </span>
             <span class="info__item__time">
               ${entry.type !== 'avg' ? getTime(new Date(entry.last_changed), this.config.format, this._hass.language) : ''}
@@ -642,7 +642,7 @@ class MiniGraphCard extends LitElement {
     );
   }
 
-  computeState(inState) {
+  computeState(inState, showRaw) {
     if (this.config.state_map.length > 0) {
       const stateMap = Number.isInteger(inState)
         ? this.config.state_map[inState]
@@ -657,7 +657,11 @@ class MiniGraphCard extends LitElement {
 
     let state;
     if (typeof inState === 'string') {
-      state = parseFloat(inState.replace(/,/g, '.'));
+      if (showRaw) {
+        return inState;
+      } else {
+        state = parseFloat(inState.replace(/,/g, '.'));
+      }
     } else {
       state = Number(inState);
     }
