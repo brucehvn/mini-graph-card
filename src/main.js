@@ -227,7 +227,9 @@ class MiniGraphCard extends LitElement {
   renderStates() {
     const { entity, value } = this.tooltip;
     const state = value !== undefined ? value : this.entity[0].state;
-    const color = this.config.entities[0].state_adaptive_color ? `color: ${this.color};` : '';
+    const adaptiveColor = this.config.entities[0].state_adaptive_color
+      ? this.computeColor(state, 0) : this.color;
+    const color = this.config.entities[0].state_adaptive_color ? `color: ${adaptiveColor};` : '';
     if (this.config.show.state)
       return html`
         <div class="states flex" loc=${this.config.align_state}>
@@ -558,7 +560,13 @@ class MiniGraphCard extends LitElement {
 
   computeColor(inState, i) {
     const { color_thresholds, line_color } = this.config;
-    const state = Number(inState) || 0;
+    let state;
+    if (typeof inState === 'string') {
+      state = parseFloat(inState.replace(/,/g, '.')) || 0;
+    } else {
+      state = Number(inState) || 0;
+    }
+
     const threshold = {
       color: line_color[i] || line_color[0],
       ...color_thresholds.slice(-1)[0],
